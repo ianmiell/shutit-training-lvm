@@ -90,14 +90,14 @@ class training_lvm(ShutItModule):
         done = true
         # Uncomment to set specific Virtual Machine name in VirtualBox.
         #vb.name = 'centos65'
-        vb.customize ['modifyvm', :id, '--memory', '4096', '--cpus', '2', '--rtcuseutc', 'on', '--natdnshostresolver1', 'on', '--nictype1', 'virtio', '--nictype2', 'virtio' ]
+        vb.customize ['modifyvm', :id, '--memory', '1024', '--cpus', '1', '--rtcuseutc', 'on', '--natdnshostresolver1', 'on', '--nictype1', 'virtio', '--nictype2', 'virtio' ]
         # Attach SATA AHCI controller, if needed.
         vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata' ]
         vb.customize ['createhd', '--filename', 'centos65-disk1.vdi', '--size', 10*1024 ]
         vb.customize ['createhd', '--filename', 'centos65-disk2.vdi', '--size', 10*1024 ]
         vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', 'centos65-disk1.vdi']
         # Alternatively: SATA Controller
-        vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 1, '--type', 'hdd', '--medium', 'centos65-disk2.vdi']
+        vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 2, '--device', 0, '--type', 'hdd', '--medium', 'centos65-disk2.vdi']
       end
     end
     machine.vm.provision 'shell', inline: <<-EOS.gsub(/^\s+/,'')
@@ -127,6 +127,20 @@ end
 		shutit.multisend('pvcreate /dev/sda1',{'ipe it':'y'})
 		shutit.multisend('pvcreate /dev/sdb1',{'ipe it':'y'})
 		shutit.multisend('pvcreate /dev/sdc1',{'ipe it':'y'})
+
+# pvcreate
+# pv
+
+# vg
+
+# creating a pool?
+#lvcreate --thin root_vg/pool0 -V 4G -n varlibdocker # thin device (take up no space, in the pool in rootvg with virtual 4G and named varlibdocker). overprovisioning. watch the pool space
+
+#lvcreate 'normal device'
+#mkfs /dev/mapper/root_vg-varlibdocker
+
+# thin provisioning from a pool lv
+
 		shutit.pause_point()
 		shutit.logout()
 		shutit.logout()
