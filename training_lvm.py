@@ -128,6 +128,7 @@ end
 		shutit.multisend('pvcreate /dev/sdb1',{'ipe it':'y'})
 		shutit.multisend('pvcreate /dev/sdc1',{'ipe it':'y'})
 
+#cf https://docs.docker.com/engine/userguide/storagedriver/device-mapper-driver/
 # pvcreate
 # pv
 
@@ -137,6 +138,11 @@ end
 #lvcreate --thin root_vg/pool0 -V 4G -n varlibdocker # thin device (take up no space, in the pool in rootvg with virtual 4G and named varlibdocker). overprovisioning. watch the pool space
 
 #lvcreate 'normal device'
+#lvremove
+
+#lvdisplay
+
+#pvdisplay
 #mkfs /dev/mapper/root_vg-varlibdocker
 
 # thin provisioning from a pool lv
