@@ -72,61 +72,14 @@ class training_lvm(ShutItModule):
 		#                                    - Get input from user and return output
 		# shutit.fail(msg)                   - Fail the program and exit with status 1
 		#
-		vagrantfile = '''Vagrant.configure('2') do |config|
-  config.ssh.forward_agent = true
-  # For vagrant-cashier plugin, see: http://fgrehm.viewdocs.io/vagrant-cachier
-  # config.cache.scope = :box
-  # config.cache.auto_detect = true
-
-  config.vm.define :centos65 do |machine|
-    machine.vm.box = '/space/vagrant/centos/CentOS-7-x86_64-AtomicHost-Vagrant-VirtualBox-20150228_01.box'
-    machine.vm.hostname = 'centos65'
-    # Tweak accordingly, if needed.
-    # machine.vm.network :private_network, ip: '172.16.1.10'
-    # machine.vm.network 'forwarded_port', guest: 80, host: 8080
-    done = false
-    machine.vm.provider :virtualbox do |vb|
-      if done == false
-        done = true
-        # Uncomment to set specific Virtual Machine name in VirtualBox.
-        #vb.name = 'centos65'
-        vb.customize ['modifyvm', :id, '--memory', '1024', '--cpus', '1', '--rtcuseutc', 'on', '--natdnshostresolver1', 'on', '--nictype1', 'virtio', '--nictype2', 'virtio' ]
-        # Attach SATA AHCI controller, if needed.
-        vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata' ]
-        vb.customize ['createhd', '--filename', 'centos65-disk1.vdi', '--size', 10*1024 ]
-        vb.customize ['createhd', '--filename', 'centos65-disk2.vdi', '--size', 10*1024 ]
-        vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', 'centos65-disk1.vdi']
-        # Alternatively: SATA Controller
-        vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 2, '--device', 0, '--type', 'hdd', '--medium', 'centos65-disk2.vdi']
-      end
-    end
-    machine.vm.provision 'shell', inline: <<-EOS.gsub(/^\s+/,'')
-      disk=1
-      for l in b c d e ; do
-        [ -e /dev/sd${l}1 ] && continue ;
-        (echo o; echo n; echo p; echo 1; echo; echo; echo w) | sudo fdisk /dev/sd${l} > /dev/null 2>&1 || true
-        yes | sudo mkfs.ext4 -q /dev/sd${l}1 > /dev/null 2>&1 || true
-        sudo mkdir -p /mnt/#{machine.vm.hostname}-disk-${disk} > /dev/null 2>&1 || true
-        sudo mount /dev/sd${l}1 /mnt/#{machine.vm.hostname}-disk-${disk} > /dev/null 2>&1 || true
-        disk=$(( disk + 1 ))
-      done
-    EOS
-  end
-end
-'''
 		shutit.send('rm -rf /tmp/lvm_vm')
 		shutit.send('mkdir -p /tmp/lvm_vm')
 		shutit.send('cd /tmp/lvm_vm')
-		shutit.send_file('/tmp/lvm_vm/Vagrantfile',vagrantfile)
+		shutit.send('vagrant init nightw/ubuntu-12.04-with-4-data-disks')
 		shutit.send('vagrant up')
 		shutit.login(command='vagrant ssh')
 		shutit.login(command='sudo su -',note='Become root (there is a problem logging in as admin with the vagrant user)')
-		shutit.send('umount /dev/sda1')
-		shutit.send('umount /dev/sdb1')
-		shutit.send('umount /dev/sdc1')
-		shutit.multisend('pvcreate /dev/sda1',{'ipe it':'y'})
-		shutit.multisend('pvcreate /dev/sdb1',{'ipe it':'y'})
-		shutit.multisend('pvcreate /dev/sdc1',{'ipe it':'y'})
+# TODO: partition etc..
 
 #cf https://docs.docker.com/engine/userguide/storagedriver/device-mapper-driver/
 # pvcreate
