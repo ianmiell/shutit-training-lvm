@@ -80,6 +80,7 @@ class training_lvm(ShutItModule):
 		shutit.login(command='vagrant ssh')
 		shutit.login(command='sudo su -',note='Become root (there is a problem logging in as admin with the vagrant user)')
 		#cf https://docs.docker.com/engine/userguide/storagedriver/device-mapper-driver/
+		# https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Logical_Volume_Manager_Administration/thinly_provisioned_volume_creation.html
 		shutit.send('lshw -class disk',note='List the available disks. We have 4 drives that are un-mounted and un-partitioned - sda,sdb,...,sde')
 		shutit.send('pvdisplay',note='A longer output of the above.')
 		shutit.send('pvcreate /dev/sdb',note='Give sdb to the physical volume (pv) manager to manage.')
@@ -96,6 +97,7 @@ class training_lvm(ShutItModule):
 # thin provisioning from a pool lv
 
 #mkfs /dev/mapper/root_vg-varlibdocker
+#http://sourceforge.net/projects/osboxes/files/vms/vbox/CentOS/7.1/CentOS_7.1_1503-%2864bit%29.7z/download
 
 
 		shutit.pause_point()
