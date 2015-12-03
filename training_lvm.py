@@ -79,26 +79,24 @@ class training_lvm(ShutItModule):
 		shutit.send('vagrant up')
 		shutit.login(command='vagrant ssh')
 		shutit.login(command='sudo su -',note='Become root (there is a problem logging in as admin with the vagrant user)')
-# TODO: partition etc..
-
-#cf https://docs.docker.com/engine/userguide/storagedriver/device-mapper-driver/
-# pvcreate
-# pv
-
-# vg
+		#cf https://docs.docker.com/engine/userguide/storagedriver/device-mapper-driver/
+		shutit.send('lshw -class disk',note='List the available disks. We have 4 drives that are un-mounted and un-partitioned - sda,sdb,...,sde')
+		shutit.send('pvdisplay',note='A longer output of the above.')
+		shutit.send('pvcreate /dev/sdb',note='Give sdb to the physical volume (pv) manager to manage.')
+		shutit.send('pvscan',note='sdb is not assigned to a volume group, whereas the sda5 partition is assigned to the vagrant volume group.')
+		shutit.send('pvdisplay',note='pvdisplay')
+		shutit.send('vgcreate newvg1 /dev/sdb',note='')
+		shutit.send('vgdisplay newvg1',note='')
+		shutit.send('lvcreate -L +100M -n newvol1',note='')
+		shutit.send('lvdisplay newvg1',note='')
 
 # creating a pool?
+# Thin provisioning - need to use a later version of centos.
 #lvcreate --thin root_vg/pool0 -V 4G -n varlibdocker # thin device (take up no space, in the pool in rootvg with virtual 4G and named varlibdocker). overprovisioning. watch the pool space
+# thin provisioning from a pool lv
 
-#lvcreate 'normal device'
-#lvremove
-
-#lvdisplay
-
-#pvdisplay
 #mkfs /dev/mapper/root_vg-varlibdocker
 
-# thin provisioning from a pool lv
 
 		shutit.pause_point()
 		shutit.logout()
