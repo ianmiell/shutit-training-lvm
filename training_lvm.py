@@ -82,22 +82,26 @@ class training_lvm(ShutItModule):
 		#cf https://docs.docker.com/engine/userguide/storagedriver/device-mapper-driver/
 		# https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Logical_Volume_Manager_Administration/thinly_provisioned_volume_creation.html
 		shutit.send('lshw -class disk',note='List the available disks. We have 4 drives that are un-mounted and un-partitioned - sda,sdb,...,sde')
-		shutit.send('pvdisplay',note='A longer output of the above.')
+		shutit.send('pvdisplay',note='A longer output of the above. pv/vg/lvdisplay are good default commands to run when you are stuck.')
 		shutit.send('pvcreate /dev/sdb',note='Give sdb to the physical volume (pv) manager to manage.')
 		shutit.send('pvscan',note='sdb is not assigned to a volume group, whereas the sda5 partition is assigned to the vagrant volume group.')
-		shutit.send('pvdisplay',note='pvdisplay')
-		shutit.send('vgcreate newvg1 /dev/sdb',note='')
-		shutit.send('vgdisplay newvg1',note='')
+		shutit.send('pvdisplay',note='Display the current status in longer form')
+		shutit.send('vgdisplay newvg1',note='Display the current volume groups.')
+		shutit.send('vgcreate newvg1 /dev/sdb',note='Create a new volume group, giving it the sdb physical disk to manage.')
+		shutit.send('vgdisplay newvg1',note='newvg1 has been added to the volume groups')
 		shutit.send('lvcreate -L +100M -n newvol1',note='')
+		shutit.send('lvcreate -L +100%FREE -n newvol2',note='')
 		shutit.send('lvdisplay newvg1',note='')
+		#shutit.send('truncate --size 500M
+		# add a disk to that vg
 
 # creating a pool?
 # Thin provisioning - need to use a later version of centos.
 #lvcreate --thin root_vg/pool0 -V 4G -n varlibdocker # thin device (take up no space, in the pool in rootvg with virtual 4G and named varlibdocker). overprovisioning. watch the pool space
 # thin provisioning from a pool lv
-
 #mkfs /dev/mapper/root_vg-varlibdocker
 #http://sourceforge.net/projects/osboxes/files/vms/vbox/CentOS/7.1/CentOS_7.1_1503-%2864bit%29.7z/download
+# creating a vm locally, adding disks, then uploading it to atlas: https://atlas.hashicorp.com/ianmiell/boxes/disks/versions/0.1.0/providers/virtualbox/edit
 
 
 		shutit.pause_point()
