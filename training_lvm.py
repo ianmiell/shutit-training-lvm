@@ -75,8 +75,8 @@ class training_lvm(ShutItModule):
 		shutit.send('rm -rf /tmp/lvm_vm')
 		shutit.send('mkdir -p /tmp/lvm_vm')
 		shutit.send('cd /tmp/lvm_vm')
-		shutit.send('vagrant init nightw/ubuntu-12.04-with-4-data-disks')
-		shutit.send('vagrant up')
+		shutit.send('vagrant init ianmiell/centos_7.1_lvm')
+		shutit.send('vagrant up --provider virtualbox')
 		shutit.login(command='vagrant ssh')
 		shutit.login(command='sudo su -',note='Become root (there is a problem logging in as admin with the vagrant user)')
 		#cf https://docs.docker.com/engine/userguide/storagedriver/device-mapper-driver/
@@ -90,7 +90,7 @@ class training_lvm(ShutItModule):
 		shutit.send('vgcreate newvg1 /dev/sdb',note='Create a new volume group, giving it the sdb physical disk to manage.')
 		shutit.send('vgdisplay newvg1',note='newvg1 has been added to the volume groups')
 		shutit.send('lvcreate -L +100M -n newvol1',note='')
-		shutit.send('lvcreate -L +100%FREE -n newvol2',note='')
+		shutit.send('lvcreate -L +100%FREE -n newvol2',note='Allocate any remaining free space to another volume using the 100%FREE specifier.')
 		shutit.send('lvdisplay newvg1',note='')
 		#shutit.send('truncate --size 500M
 		# add a disk to that vg
