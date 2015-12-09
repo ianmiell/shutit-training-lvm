@@ -75,12 +75,13 @@ class training_lvm(ShutItModule):
 		shutit.send('rm -rf /tmp/lvm_vm')
 		shutit.send('mkdir -p /tmp/lvm_vm')
 		shutit.send('cd /tmp/lvm_vm')
-		shutit.send('vagrant init ianmiell/centos_7.1_lvm')
+		shutit.send('vagrant init ianmiell/centos7_lvm')
 		shutit.send('vagrant up --provider virtualbox')
 		shutit.login(command='vagrant ssh')
-		shutit.login(command='sudo su -',note='Become root (there is a problem logging in as admin with the vagrant user)')
+		shutit.login(command='sudo su -')
 		#cf https://docs.docker.com/engine/userguide/storagedriver/device-mapper-driver/
 		# https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Logical_Volume_Manager_Administration/thinly_provisioned_volume_creation.html
+		shutit.install('lshw')
 		shutit.send('lshw -class disk',note='List the available disks. We have 4 drives that are un-mounted and un-partitioned - sda,sdb,...,sde')
 		shutit.send('pvdisplay',note='A longer output of the above. pv/vg/lvdisplay are good default commands to run when you are stuck.')
 		shutit.send('pvcreate /dev/sdb',note='Give sdb to the physical volume (pv) manager to manage.')
