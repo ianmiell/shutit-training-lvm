@@ -87,7 +87,6 @@ class training_lvm(ShutItModule):
 		shutit.send('pvcreate /dev/sdb',note='Give sdb to the physical volume (pv) manager to manage.')
 		shutit.send('pvscan',note='sdb is not assigned to a volume group, whereas the sda5 partition is assigned to the vagrant volume group.')
 		shutit.send('pvdisplay',note='Display the current status in longer form')
-		shutit.send('vgdisplay newvg1',note='Display the current volume groups.')
 		shutit.send('vgcreate newvg1 /dev/sdb',note='Create a new volume group, giving it the sdb physical disk to manage.')
 		shutit.send('vgdisplay newvg1',note='newvg1 has been added to the volume groups')
 		shutit.send('lvcreate -L +100M -n newvol1',note='')
