@@ -89,9 +89,9 @@ class training_lvm(ShutItModule):
 		shutit.send('pvdisplay',note='Display the current status in longer form')
 		shutit.send('vgcreate newvg1 /dev/sdb',note='Create a new volume group, giving it the sdb physical disk to manage.')
 		shutit.send('vgdisplay newvg1',note='newvg1 has been added to the volume groups')
-		shutit.send('lvcreate -L +100M -n newvol1',note='')
-		shutit.send('lvcreate -L +100%FREE -n newvol2',note='Allocate any remaining free space to another volume using the 100%FREE specifier.')
-		shutit.send('lvdisplay newvg1',note='')
+		shutit.send('lvcreate -L +100M -n newvol1 newvg1',note='Create a logical volume within this new volume group')
+		shutit.send('lvcreate -L +100%FREE -n newvol2 newvg1',note='Allocate any remaining free space to another volume using the 100%FREE specifier.')
+		shutit.send('vgdisplay newvg1',note='Show the state of the volume group we have created.')
 		#shutit.send('truncate --size 500M
 		# add a disk to that vg
 
