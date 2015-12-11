@@ -90,18 +90,17 @@ class training_lvm(ShutItModule):
 		shutit.send('vgcreate newvg1 /dev/sdb',note='Create a new volume group, giving it the sdb physical disk to manage.')
 		shutit.send('vgdisplay newvg1',note='newvg1 has been added to the volume groups')
 		shutit.send('lvcreate -L +100M -n newvol1 newvg1',note='Create a logical volume within this new volume group')
-		shutit.send('lvcreate -L +100%FREE -n newvol2 newvg1',note='Allocate any remaining free space to another volume using the 100%FREE specifier.')
+		shutit.send('lvcreate -l +100%FREE -n newvol2 newvg1',note='Allocate any remaining free space to another volume using the 100%FREE specifier. Note this is -l, not -L.')
 		shutit.send('vgdisplay newvg1',note='Show the state of the volume group we have created.')
 		#shutit.send('truncate --size 500M
 		# add a disk to that vg
 
 # creating a pool?
-# Thin provisioning - need to use a later version of centos.
-#lvcreate --thin root_vg/pool0 -V 4G -n varlibdocker # thin device (take up no space, in the pool in rootvg with virtual 4G and named varlibdocker). overprovisioning. watch the pool space
-# thin provisioning from a pool lv
-#mkfs /dev/mapper/root_vg-varlibdocker
-#http://sourceforge.net/projects/osboxes/files/vms/vbox/CentOS/7.1/CentOS_7.1_1503-%2864bit%29.7z/download
 # creating a vm locally, adding disks, then uploading it to atlas: https://atlas.hashicorp.com/ianmiell/boxes/disks/versions/0.1.0/providers/virtualbox/edit
+
+# Thin provisioning - need to use a later version of centos.
+		#shutit.send('lvcreate --thin root_vg/pool0 -V 4G -n virtualvol',note='thin device (take up no space, in the pool in rootvg with virtual 4G and named varlibdocker). overprovisioning. watch the pool space')
+		#shutit.send('mkfs /dev/mapper/root_vg-varlibdocker',note='')
 
 
 		shutit.pause_point()
