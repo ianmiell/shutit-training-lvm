@@ -92,15 +92,16 @@ class training_lvm(ShutItModule):
 		shutit.send('lvcreate -L +100M -n newvol1 newvg1',note='Create a logical volume within this new volume group')
 		shutit.send('lvcreate -l +100%FREE -n newvol2 newvg1',note='Allocate any remaining free space to another volume using the 100%FREE specifier. Note this is -l, not -L.')
 		shutit.send('vgdisplay newvg1',note='Show the state of the volume group we have created.')
-		#shutit.send('truncate --size 500M
-		# add a disk to that vg
-
-# creating a pool?
-# creating a vm locally, adding disks, then uploading it to atlas: https://atlas.hashicorp.com/ianmiell/boxes/disks/versions/0.1.0/providers/virtualbox/edit
-
-# Thin provisioning - need to use a later version of centos.
-		#shutit.send('lvcreate --thin root_vg/pool0 -V 4G -n virtualvol',note='thin device (take up no space, in the pool in rootvg with virtual 4G and named varlibdocker). overprovisioning. watch the pool space')
-		#shutit.send('mkfs /dev/mapper/root_vg-varlibdocker',note='')
+		shutit.send('lvremove /dev/mapper/newvg1-newvol2',{'really':'y'},note='Remove the larger logical volume we just created')
+		shutit.send('lvcreate -L 1G -T newvg1/newthinpool',note='Create a think pool of size 1 Gigabyte.')
+		shutit.send('lvcreate --thin newvg1/newthinpool -V 100M -n virtualvol1',note='Create a thin device within that pool (takes up no space, in the pool in rootvg with virtual 200M and named virtualvol1).')
+		shutit.send('lvcreate --thin newvg1/newthinpool -V 2G -n virtualvol2',note='Create another thin device within that pool.\n\nNotice how we overprovision this pool with two pools adding up to ~2.1G for a 1G thin volume.')
+		shutit.send('mkdir /mnt/thinvol2_dir',note='Make a directory to mount that volume onto')
+		shutit.send('mkfs.ext4 /dev/mapper/newvg1-virtualvol2',note='Set up the filesystem for the thin pool')
+		shutit.send('mount -t auto /dev/mapper/newvg1-virtualvol2 /mnt/thinvol2_dir',note='Mount the thin volume onto the mount point we created.')
+		# resize
+		# overfill
+		shutit.pause_point('')
 
 
 		shutit.pause_point()
