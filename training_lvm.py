@@ -87,23 +87,25 @@ class training_lvm(ShutItModule):
 		shutit.send('pvcreate /dev/sdb',note='Give sdb to the physical volume (pv) manager to manage.')
 		shutit.send('pvscan',note='sdb is not assigned to a volume group, whereas the sda5 partition is assigned to the vagrant volume group.')
 		shutit.send('pvdisplay',note='Display the current status in longer form')
+		# new volume group
 		shutit.send('vgcreate newvg1 /dev/sdb',note='Create a new volume group, giving it the sdb physical disk to manage.')
 		shutit.send('vgdisplay newvg1',note='newvg1 has been added to the volume groups')
 		shutit.send('lvcreate -L +100M -n newvol1 newvg1',note='Create a logical volume within this new volume group')
 		shutit.send('lvcreate -l +100%FREE -n newvol2 newvg1',note='Allocate any remaining free space to another volume using the 100%FREE specifier. Note this is -l, not -L.')
 		shutit.send('vgdisplay newvg1',note='Show the state of the volume group we have created.')
 		shutit.send('lvremove /dev/mapper/newvg1-newvol2',{'really':'y'},note='Remove the larger logical volume we just created')
+		# create thin pool
 		shutit.send('lvcreate -L 1G -T newvg1/newthinpool',note='Create a think pool of size 1 Gigabyte.')
-		shutit.send('lvcreate --thin newvg1/newthinpool -V 100M -n virtualvol1',note='Create a thin device within that pool (takes up no space, in the pool in rootvg with virtual 200M and named virtualvol1).')
+		shutit.send('lvcreate --thin newvg1/newthinpool -V 100M -n virtualvol1',note='Create a thin device within that pool (takes up no space, in the pool in rootvg with virtual 100M and named virtualvol1).')
 		shutit.send('lvcreate --thin newvg1/newthinpool -V 2G -n virtualvol2',note='Create another thin device within that pool.\n\nNotice how we overprovision this pool with two pools adding up to ~2.1G for a 1G thin volume.')
+		# mount
 		shutit.send('mkdir /mnt/thinvol2_dir',note='Make a directory to mount that volume onto')
 		shutit.send('mkfs.ext4 /dev/mapper/newvg1-virtualvol2',note='Set up the filesystem for the thin pool')
 		shutit.send('mount -t auto /dev/mapper/newvg1-virtualvol2 /mnt/thinvol2_dir',note='Mount the thin volume onto the mount point we created.')
-		shutit.send('dd if=/dev/urandom of=/mnt/thinvol2_dir bs=1M count=1500',note='Now we will try and overfill this thin volume with ~1.5GiB, which is less than the virtual size of 2GiB, but more than the physical space allocated to the thin pool it was placed in (1GiB)')
 		# overfill
+		shutit.send('dd if=/dev/urandom of=/mnt/thinvol2_dir bs=1M count=1500',note='Now we will try and overfill this thin volume with ~1.5GiB, which is less than the virtual size of 2GiB, but more than the physical space allocated to the thin pool it was placed in (1GiB)')
 		# resizing: http://blog.intelligencecomputing.io/infra/12040/repost-lvm-resizing-guide
 		shutit.pause_point('')
-
 		shutit.logout()
 		shutit.logout()
 		shutit.send('vagrant destroy -f')
