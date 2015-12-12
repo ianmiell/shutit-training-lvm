@@ -104,9 +104,6 @@ class training_lvm(ShutItModule):
 		# resizing: http://blog.intelligencecomputing.io/infra/12040/repost-lvm-resizing-guide
 		shutit.pause_point('')
 
-
-
-		shutit.pause_point()
 		shutit.logout()
 		shutit.logout()
 		shutit.send('vagrant destroy -f')
