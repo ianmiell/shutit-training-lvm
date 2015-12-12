@@ -103,7 +103,7 @@ class training_lvm(ShutItModule):
 		shutit.send('mkfs.ext4 /dev/mapper/newvg1-virtualvol2',note='Set up the filesystem for the thin pool')
 		shutit.send('mount -t auto /dev/mapper/newvg1-virtualvol2 /mnt/thinvol2_dir',note='Mount the thin volume onto the mount point we created.')
 		# overfill
-		shutit.send('dd if=/dev/urandom of=/mnt/thinvol2_dir bs=1M count=1500',note='Now we will try and overfill this thin volume with ~1.5GiB, which is less than the virtual size of 2GiB, but more than the physical space allocated to the thin pool it was placed in (1GiB)')
+		shutit.send('dd if=/dev/urandom of=/mnt/thinvol2_dir/afile bs=1M count=1500',note='Now we will try and overfill this thin volume with ~1.5GiB, which is less than the virtual size of 2GiB, but more than the physical space allocated to the thin pool it was placed in (1GiB)')
 		# resizing: http://blog.intelligencecomputing.io/infra/12040/repost-lvm-resizing-guide
 		shutit.pause_point('')
 		shutit.logout()
