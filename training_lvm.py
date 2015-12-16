@@ -93,22 +93,40 @@ class training_lvm(ShutItModule):
 		shutit.send('lvcreate -L +100M -n newvol1 newvg1',note='Create a logical volume within this new volume group')
 		shutit.send('lvcreate -l +100%FREE -n newvol2 newvg1',note='Allocate any remaining free space to another volume using the 100%FREE specifier. Note this is -l, not -L.')
 		shutit.send('vgdisplay newvg1',note='Show the state of the volume group we have created.')
+		shutit.send('lvremove /dev/mapper/newvg1-newvol1',{'really':'y'},note='Remove the smaller logical volume we just created')
 		shutit.send('lvremove /dev/mapper/newvg1-newvol2',{'really':'y'},note='Remove the larger logical volume we just created')
-		# create thin pool
-		# man lvmthin
-		shutit.send('lvcreate -L 1G -T newvg1/newthinpool',note='Create a think pool of size 1 Gigabyte.')
+
+		## Breaks filesystem! http://man7.org/linux/man-pages/man7/lvmthin.7.html, lvconvert --repair VG/ThinPoolLV?
+		### create thin pool - man lvmthin
+		## https://lxadm.wordpress.com/2012/10/17/lvm-thin-provisioning/ - appears to be a bug!?
+		#shutit.send('lvcreate -L 1G -T newvg1/newthinpool',note='Create a thin pool of size 1 Gigabyte.')
+		#shutit.send('lvcreate --thin newvg1/newthinpool -V 100M -n virtualvol1',note='Create a thin device within that pool (takes up no space, in the pool in rootvg with virtual 100M and named virtualvol1).')
+		#shutit.send('lvcreate --thin newvg1/newthinpool -V 2G -n virtualvol2',note='Create another thin device within that pool.\n\nNotice how we overprovision this pool with two pools adding up to ~2.1G for a 1G thin volume.')
+		## mount
+		#shutit.send('mkdir /mnt/thinvol2_dir',note='Make a directory to mount that volume onto')
+		#shutit.send('mkfs.ext4 /dev/mapper/newvg1-virtualvol2',note='Set up the filesystem for the thin pool')
+		#shutit.send('mount -t auto /dev/mapper/newvg1-virtualvol2 /mnt/thinvol2_dir',note='Mount the thin volume onto the mount point we created.')
+		## overfill
+		#shutit.send('dd if=/dev/urandom of=/mnt/thinvol2_dir/afile bs=1M count=1500',note='Now we will try and overfill this thin volume with ~1.5GiB, which is less than the virtual size of 2GiB, but more than the physical space allocated to the thin pool it was placed in (1GiB)')
+		## dmesg errors, the file did not get actually written! Is this a bug?
+
+		## create safer thin pool
+		shutit.send('lvcreate -L 1.95G -T newvg1/newthinpool',note='Create a thin pool of size 1 Gigabyte.')
 		shutit.send('lvcreate --thin newvg1/newthinpool -V 100M -n virtualvol1',note='Create a thin device within that pool (takes up no space, in the pool in rootvg with virtual 100M and named virtualvol1).')
-		shutit.send('lvcreate --thin newvg1/newthinpool -V 2G -n virtualvol2',note='Create another thin device within that pool.\n\nNotice how we overprovision this pool with two pools adding up to ~2.1G for a 1G thin volume.')
-		# mount
+		shutit.send('lvcreate --thin newvg1/newthinpool -V 1.5G -n virtualvol2',note='Create another thin device within that pool.')
+		## mount
 		shutit.send('mkdir /mnt/thinvol2_dir',note='Make a directory to mount that volume onto')
 		shutit.send('mkfs.ext4 /dev/mapper/newvg1-virtualvol2',note='Set up the filesystem for the thin pool')
 		shutit.send('mount -t auto /dev/mapper/newvg1-virtualvol2 /mnt/thinvol2_dir',note='Mount the thin volume onto the mount point we created.')
-		# overfill
-		shutit.send('dd if=/dev/urandom of=/mnt/thinvol2_dir/afile bs=1M count=1500',note='Now we will try and overfill this thin volume with ~1.5GiB, which is less than the virtual size of 2GiB, but more than the physical space allocated to the thin pool it was placed in (1GiB)')
+		## overfill
+		shutit.send('dd if=/dev/urandom of=/mnt/thinvol2_dir/afile bs=1M count=1100',note='Now we will try and overfill this thin volume with ~1.1GiB, which is more than the virtual size of 1GiB, but less than the physical space allocated to the thin pool it was placed in (1.5GiB). It should fail.',check_exit=False)
+		shutit.send('rm -f /mnt/thinvol2_dir/afile',note='Remove the file.')
 		# resizing: http://blog.intelligencecomputing.io/infra/12040/repost-lvm-resizing-guide
-		# RESIZE, then resize2fs the filesystem to make sure it picks up the new size
-			#Next time you do lvextend or lvresize you could add -r/--resizefs so as to do it on the fly 
-		shutit.pause_point('')
+		shutit.send('lvresize -L +0.4G newvg1/virtualvol2',note='resize the logical volume to add 0.4G to it')
+		shutit.send('df -kh /dev/mapper/newvg1-virtualvol2',note='Even though we have resized the logical volume, the filesystem (df) still gives us the same size as previously - 1.5G.')
+		shutit.send('resize2fs /mnt/thinvol2_dir',note='Resize the filesystem to reflect the new size of the logical volume. You could also add -r/--resize to the lvresize command.')
+		shutit.send('df -kh /dev/mapper/newvg1-virtualvol2',note='The size of the logical volume is now reflected in the filesystem')
+		shutit.send('dd if=/dev/urandom of=/mnt/thinvol2_dir/afile bs=1M count=1100',note='Now the file creation should work.')
 		shutit.logout()
 		shutit.logout()
 		shutit.send('vagrant destroy -f')
