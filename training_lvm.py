@@ -95,6 +95,7 @@ class training_lvm(ShutItModule):
 		shutit.send('vgdisplay newvg1',note='Show the state of the volume group we have created.')
 		shutit.send('lvremove /dev/mapper/newvg1-newvol2',{'really':'y'},note='Remove the larger logical volume we just created')
 		# create thin pool
+		# man lvmthin
 		shutit.send('lvcreate -L 1G -T newvg1/newthinpool',note='Create a think pool of size 1 Gigabyte.')
 		shutit.send('lvcreate --thin newvg1/newthinpool -V 100M -n virtualvol1',note='Create a thin device within that pool (takes up no space, in the pool in rootvg with virtual 100M and named virtualvol1).')
 		shutit.send('lvcreate --thin newvg1/newthinpool -V 2G -n virtualvol2',note='Create another thin device within that pool.\n\nNotice how we overprovision this pool with two pools adding up to ~2.1G for a 1G thin volume.')
@@ -105,6 +106,8 @@ class training_lvm(ShutItModule):
 		# overfill
 		shutit.send('dd if=/dev/urandom of=/mnt/thinvol2_dir bs=1M count=1500',note='Now we will try and overfill this thin volume with ~1.5GiB, which is less than the virtual size of 2GiB, but more than the physical space allocated to the thin pool it was placed in (1GiB)')
 		# resizing: http://blog.intelligencecomputing.io/infra/12040/repost-lvm-resizing-guide
+		# RESIZE, then resize2fs the filesystem to make sure it picks up the new size
+			#Next time you do lvextend or lvresize you could add -r/--resizefs so as to do it on the fly 
 		shutit.pause_point('')
 		shutit.logout()
 		shutit.logout()
