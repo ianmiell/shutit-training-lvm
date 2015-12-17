@@ -81,18 +81,17 @@ class training_lvm(ShutItModule):
 		shutit.login(command='sudo su -')
 		#cf https://docs.docker.com/engine/userguide/storagedriver/device-mapper-driver/
 		# https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Logical_Volume_Manager_Administration/thinly_provisioned_volume_creation.html
-		shutit.install('lshw')
-		shutit.send('lshw -class disk',note='List the available disks. We have 4 drives that are un-mounted and un-partitioned - sda,sdb,...,sde')
-		shutit.send('pvdisplay',note='A longer output of the above. pv/vg/lvdisplay are good default commands to run when you are stuck.')
-		shutit.send('pvcreate /dev/sdb',note='Give sdb to the physical volume (pv) manager to manage.')
-		shutit.send('pvscan',note='sdb is not assigned to a volume group, whereas the sda5 partition is assigned to the vagrant volume group.')
+		shutit.send('ls /dev/sd*',note='List the available disks. We have 4 drives that are un-mounted and un-partitioned - sda,sdb,...')
+		shutit.send('pvdisplay',note='Now show the physical volumes (the lowest layer of lvm) we have in our volume management. pv/vg/lvdisplay are good default commands to run when you are stuck.')
+		shutit.send('pvcreate /dev/sdb',note='Use pbcreate to give sdb to the physical volume (pv) manager to manage.')
+		shutit.send('pvscan',note='Use pvscan to scan disks for physical volumes. sdb is not assigned to a volume group, whereas the sda5 partition is assigned to the vagrant volume group.')
 		shutit.send('pvdisplay',note='Display the current status in longer form')
 		# new volume group
-		shutit.send('vgcreate newvg1 /dev/sdb',note='Create a new volume group, giving it the sdb physical disk to manage.')
+		shutit.send('vgcreate newvg1 /dev/sdb',note='Create a new volume group (the next level up in the hierarchy), giving it the sdb physical disk to manage.')
 		shutit.send('vgdisplay newvg1',note='newvg1 has been added to the volume groups')
-		shutit.send('lvcreate -L +100M -n newvol1 newvg1',note='Create a logical volume within this new volume group')
+		shutit.send('lvcreate -L +100M -n newvol1 newvg1',note='Create a logical volume (logical volumes are at the top of the lvm hierarchy) within this new volume group')
 		shutit.send('lvcreate -l +100%FREE -n newvol2 newvg1',note='Allocate any remaining free space to another volume using the 100%FREE specifier. Note this is -l, not -L.')
-		shutit.send('vgdisplay newvg1',note='Show the state of the volume group we have created.')
+		shutit.send('vgdisplay newvg1',note='Show the new state of the volume group we have created.')
 		shutit.send('lvremove /dev/mapper/newvg1-newvol1',{'really':'y'},note='Remove the smaller logical volume we just created')
 		shutit.send('lvremove /dev/mapper/newvg1-newvol2',{'really':'y'},note='Remove the larger logical volume we just created')
 
@@ -111,9 +110,9 @@ class training_lvm(ShutItModule):
 		## dmesg errors, the file did not get actually written! Is this a bug?
 
 		## create safer thin pool
-		shutit.send('lvcreate -L 1.95G -T newvg1/newthinpool',note='Create a thin pool of size 1 Gigabyte.')
+		shutit.send('lvcreate -L 1.95G -T newvg1/newthinpool',note='Create a thin pool of size 1 Gigabyte. A thin pool can have thinly-provisioned volumes placed in it. Thinly-provisioned volumes are given a virtual size, and take up no "real" space until you put data in them.')
 		shutit.send('lvcreate --thin newvg1/newthinpool -V 100M -n virtualvol1',note='Create a thin device within that pool (takes up no space, in the pool in rootvg with virtual 100M and named virtualvol1).')
-		shutit.send('lvcreate --thin newvg1/newthinpool -V 1.5G -n virtualvol2',note='Create another thin device within that pool.')
+		shutit.send('lvcreate --thin newvg1/newthinpool -V 1G -n virtualvol2',note='Create another thin device within that pool.')
 		## mount
 		shutit.send('mkdir /mnt/thinvol2_dir',note='Make a directory to mount that volume onto')
 		shutit.send('mkfs.ext4 /dev/mapper/newvg1-virtualvol2',note='Set up the filesystem for the thin pool')
@@ -123,8 +122,8 @@ class training_lvm(ShutItModule):
 		shutit.send('rm -f /mnt/thinvol2_dir/afile',note='Remove the file.')
 		# resizing: http://blog.intelligencecomputing.io/infra/12040/repost-lvm-resizing-guide
 		shutit.send('lvresize -L +0.4G newvg1/virtualvol2',note='resize the logical volume to add 0.4G to it')
-		shutit.send('df -kh /dev/mapper/newvg1-virtualvol2',note='Even though we have resized the logical volume, the filesystem (df) still gives us the same size as previously - 1.5G.')
-		shutit.send('resize2fs /mnt/thinvol2_dir',note='Resize the filesystem to reflect the new size of the logical volume. You could also add -r/--resize to the lvresize command.')
+		shutit.send('df -kh /dev/mapper/newvg1-virtualvol2',note='Even though we have resized the logical volume, the filesystem (df) still gives us the same size as previously ~1G.')
+		shutit.send('resize2fs /dev/mapper/newvg1-virtualvol2',note='Resize the filesystem to reflect the new size of the logical volume. You could also add -r/--resize to the lvresize command.')
 		shutit.send('df -kh /dev/mapper/newvg1-virtualvol2',note='The size of the logical volume is now reflected in the filesystem')
 		shutit.send('dd if=/dev/urandom of=/mnt/thinvol2_dir/afile bs=1M count=1100',note='Now the file creation should work.')
 		shutit.logout()
