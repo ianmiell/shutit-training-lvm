@@ -126,6 +126,11 @@ class training_lvm(ShutItModule):
 		shutit.send('resize2fs /dev/mapper/newvg1-virtualvol2',note='Resize the filesystem to reflect the new size of the logical volume. You could also add -r/--resize to the lvresize command.')
 		shutit.send('df -kh /dev/mapper/newvg1-virtualvol2',note='The size of the logical volume is now reflected in the filesystem')
 		shutit.send('dd if=/dev/urandom of=/mnt/thinvol2_dir/afile bs=1M count=1100',note='Now the file creation should work.')
+		# snapshotting
+		#shutit.send('lvresize -L +10G newvg1/virtualvol2',note='resize the logical volume to add 2G to it')
+		#shutit.send('resize2fs /dev/mapper/newvg1-virtualvol2',note='Resize the filesystem to reflect the new size of the logical volume. You could also add -r/--resize to the lvresize command.')
+		#shutit.send('lvcreate -s -n vvol2snap -L 2G newvg1/virtualvol2')
+		#shutit.pause_point('lvcreate -s -n vvol2snap -L 2G newvg1/virtualvol2')
 		shutit.logout()
 		shutit.logout()
 		shutit.send('vagrant destroy -f')
