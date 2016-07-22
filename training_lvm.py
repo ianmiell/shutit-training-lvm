@@ -1,6 +1,4 @@
-"""ShutIt module. See http://shutit.tk
-"""
-
+# See also: https://docs.docker.com/engine/userguide/storagedriver/device-mapper-driver/
 from shutit_module import ShutItModule
 
 
